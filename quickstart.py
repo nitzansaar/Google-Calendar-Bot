@@ -43,10 +43,10 @@ def create_event(service, event_details):
 
     # Start and end time of the event
     start_datetime = event_datetime.isoformat()
-    end_datetime = (event_datetime + datetime.timedelta(minutes=30)).isoformat()
+    end_datetime = (event_datetime + datetime.timedelta(minutes=60)).isoformat()
 
     event = {
-        'summary': f"{phone} {name}",
+        'summary': f"ros {phone} {name}",
         'location': f"{address}, {city}, {state} {zip_code}",
         'description': description,
         'start': {
@@ -70,7 +70,7 @@ def create_event(service, event_details):
 
 def main():
     creds = None
-    if (os.path.exists("token.json")):
+    if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -103,8 +103,14 @@ def main():
         print("\nEnter the event details as copied from WhatsApp:")
         event_details = input().strip()
 
-        # Create the event
-        create_event(service, event_details)
+        # Split the event details into individual events
+        event_blocks = re.split(r'(\d+\.\d+\.\d+ Booked)', event_details)
+        if len(event_blocks) > 1:
+            event_blocks = [''.join(event_blocks[i:i+2]) for i in range(1, len(event_blocks), 2)]
+
+        # Create events for each block
+        for block in event_blocks:
+            create_event(service, block.strip())
 
     except HttpError as error:
         print(f"An error occurred: {error}")
