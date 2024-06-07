@@ -22,10 +22,12 @@ def parse_event_details_with_openai(event_details):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
+            temperature=0,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that extracts structured event details from text."},
-{"role": "user", "content": f"Extract the following details from this text: {event_details}\n"
+                {"role": "user", "content": f"Extract the following details from this text: {event_details}\n"
                             "Provide the extracted details in the following format:\n"
+                            "Booking Date: <booking_date>\n"
                             "Event Date: <event_date>\n"
                             "Event Time: <event_time>\n"
                             "Phone: <phone>\n"
@@ -36,8 +38,9 @@ def parse_event_details_with_openai(event_details):
                             "Zip Code: <zip_code>\n"
                             "Description: <description>\n"
                             "Note that the address ends after the zip code, and the address may be separated by tabs.\n"
-                            "Example:\n"
-                            "Event Date: 6.4.24\n"
+                            "Examples:\n"
+                            "Booking Date: 6.4.24\n"
+                            "Event Date: 6.6.24\n"
                             "Event Time: 1pm\n"
                             "Phone: 15104144644\n"
                             "Name: John Hornung\n"
@@ -46,16 +49,38 @@ def parse_event_details_with_openai(event_details):
                             "State: CA\n"
                             "Zip Code: 94708\n"
                             "Description: Renovation project to install or replace an asphalt shingle roof.\n"
-                            "Another Example:\n"
-                            "Event Date: 6.6.24\n"
+                            "Booking Date: 6.6.24\n"
+                            "Event Date: 6.7.24\n"
                             "Event Time: 12noon\n"
                             "Phone: 14086099126\n"
                             "Name: Sunil Patel\n"
-                            "Address: 2950  Postwood Drive\n"
+                            "Address: 2950 Postwood Drive\n"
                             "City: San Jose\n"
                             "State: CA\n"
                             "Zip Code: 95132\n"
-                            "Description: Renovation project to remodel 2 bathrooms, and kitchen cabinets, redo the floors, replace drywall and interior and exterior painting."}
+                            "Description: Renovation project to remodel 2 bathrooms, and kitchen cabinets, redo the floors, replace drywall and interior and exterior painting.\n"
+                            "Booking Date: 6.7.24\n"
+                            "Event Date: 6.7.24\n"
+                            "Event Time: 1pm\n"
+                            "Phone: 15105351082\n"
+                            "Name: Martin Johnson\n"
+                            "Address: 1101 57th Ave\n"
+                            "City: Oakland\n"
+                            "State: CA\n"
+                            "Zip Code: 94621\n"
+                            "Description: Renovation project to install a new concrete foundation.\n"
+                            "Booking Date: 6.7.24\n"
+                            "Event Date: 6.9.24\n"
+                            "Event Time: 2:30pm\n"
+                            "Phone: 15103004425\n"
+                            "Name: Jaydah Howlett\n"
+                            "Address: 17158 Via Alamitos\n"
+                            "City: San Lorenzo\n"
+                            "State: CA\n"
+                            "Zip Code: 94578\n"
+                            "Description: Renovation project to install wood or stone laminate flooring in 2 bedrooms plus living room and hallway."}
+
+
 
 
             ]
@@ -89,6 +114,7 @@ def normalize_time_format(time_str):
     if len(time_str) == 7 and time_str[-2:] in ['am', 'pm'] and ':' not in time_str:
         time_str = time_str[:2] + ':' + time_str[2:]
     return time_str
+
 
 def create_event(service, parsed_details):
     required_fields = ["Event Date", "Event Time", "Phone", "Name", "Address", "City", "State", "Zip Code", "Description"]
@@ -146,6 +172,7 @@ def create_event(service, parsed_details):
         print(f'Event created: {event.get("htmlLink")}')
     except HttpError as error:
         print(f"An error occurred: {error}")
+
 
 def main():
     creds = None
