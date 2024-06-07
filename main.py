@@ -83,6 +83,7 @@ def parse_event_details_with_openai(event_details):
 
 
 
+
             ]
         )
         
@@ -173,6 +174,12 @@ def create_event(service, parsed_details):
     except HttpError as error:
         print(f"An error occurred: {error}")
 
+def preprocess_event_details(event_details):
+    # Remove any initial date that does not match the expected booking date format
+    event_details = re.sub(r'^[A-Za-z]+\s\d{1,2},\s\d{2}\n', '', event_details)
+    return event_details.strip()
+
+
 
 def main():
     creds = None
@@ -190,24 +197,33 @@ def main():
     try:
         service = build("calendar", "v3", credentials=creds)
 
-        # Prompt user to input event details
-        print("\nEnter the event details:")
-        event_details = input().strip()
+        while True:
+            # Prompt user to input event details
+            print("\nEnter the event details as copied from WhatsApp (or type 'exit' to quit):")
+            event_details = input().strip()
 
-        # Split the event details into individual events
-        event_blocks = re.split(r'(\d+\.\d+\.\d+ Booked)', event_details)
-        if len(event_blocks) > 1:
-            event_blocks = [''.join(event_blocks[i:i+2]) for i in range(1, len(event_blocks), 2)]
+            if event_details.lower() == 'exit':
+                print("Exiting the program.")
+                break
 
-        # Create events for each block
-        for block in event_blocks:
-            parsed_details = parse_event_details_with_openai(block.strip())
-            if parsed_details:
-                create_event(service, parsed_details)
+            # Preprocess the event details to remove any initial date
+            event_details = preprocess_event_details(event_details)
+
+            # Split the event details into individual events
+            event_blocks = re.split(r'(\d+\.\d+\.\d+ Booked)', event_details)
+            if len(event_blocks) > 1:
+                event_blocks = [''.join(event_blocks[i:i+2]) for i in range(1, len(event_blocks), 2)]
+
+            # Create events for each block
+            for block in event_blocks:
+                parsed_details = parse_event_details_with_openai(block.strip())
+                if parsed_details:
+                    create_event(service, parsed_details)
 
     except HttpError as error:
         print(f"An error occurred: {error}")
 
 if __name__ == "__main__":
     main()
+
 
