@@ -191,7 +191,7 @@ def main():
         service = build("calendar", "v3", credentials=creds)
 
         # Prompt user to input event details
-        print("\nEnter the event details as copied from WhatsApp:")
+        print("\nEnter the event details:")
         event_details = input().strip()
 
         # Split the event details into individual events
